@@ -1,6 +1,6 @@
 # Social Network (Java)
 
-A console-based social network built for the Advanced Programming Methods course
+Java console app that models users and friendships as a graph: counts communities (connected components) and finds the most sociable one.
 
 ## Features
 
