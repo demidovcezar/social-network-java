@@ -14,6 +14,7 @@ public Entity(){};
  * Creates an entity with the given id.
  * @param id the identifier
  */
+
 public Entity(ID id){
     this.id=id;}
 /**
@@ -32,6 +33,4 @@ public ID getId()
 public void setId(ID id){
     this.id = id;
 }
-
-
 }

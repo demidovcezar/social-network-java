@@ -2,8 +2,6 @@ package repository;
 import domain.Pereche;
 import domain.Prietenie;
 import validators.Validator;
-import domain.Prietenie;
-import domain.*;
 
 import java.time.LocalDateTime;
 

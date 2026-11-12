@@ -9,9 +9,10 @@ public class RepositoryException extends RuntimeException{
       *
       * @param message the description of the error
       */
-     public RepositoryException(String message){
-        super(message);
-    }
+     public RepositoryException(String message) {
+         super(message);
+     }
+
     /**
      * Creates the exception with a message and the original cause.
      *

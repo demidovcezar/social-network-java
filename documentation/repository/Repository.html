@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="dc.created" content="2026-10-28">
-<meta name="description" content="declaration: package: repository, interface: Repository">
+<meta name="description" content="declaration: package: main.java.repository, interface: Repository">
 <meta name="generator" content="javadoc/ClassWriter">
 <link rel="stylesheet" type="text/css" href="../resource-files/stylesheet.css">
 <script type="text/javascript" src="../script-files/script.js"></script>
@@ -44,7 +44,7 @@ initTheme();
 <div class="sub-nav">
 <div class="nav-content">
 <ol class="sub-nav-list">
-<li><a href="package-summary.html" title="Package repository">repository</a></li>
+<li><a href="package-summary.html" title="Package main.java.repository">main.java.repository</a></li>
 <li><a href="Repository.html" title="Interface Repository" class="current-selection">Repository</a></li>
 </ol>
 <div class="nav-list-search"><input type="text" id="search-input" disabled title="Search documentation (type /)" placeholder="Search documentation (type /)" aria-label="Search in documentation" autocomplete="off" spellcheck="false"><input type="reset" id="reset-search" disabled value="Reset"></div>
@@ -85,16 +85,16 @@ initTheme();
 <main role="main">
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<h1 title="Interface Repository" class="title">Interface Repository&lt;<span id="type-param-ID">ID</span>, <span id="type-param-E">E extends <a href="../domain/Entity.html" title="class in domain">Entity</a>&lt;ID&gt;</span>&gt;</h1>
+<h1 title="Interface Repository" class="title">Interface Repository&lt;<span id="type-param-ID">ID</span>, <span id="type-param-E">E extends <a href="../domain/Entity.html" title="class in main.java.domain">Entity</a>&lt;ID&gt;</span>&gt;</h1>
 </div>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Known Implementing Classes:</dt>
-<dd><code><a href="AbstractFileRepository.html" title="class in repository">AbstractFileRepository</a>, <a href="InMemoryRepository.html" title="class in repository">InMemoryRepository</a>, <a href="PrietenieDbRepository.html" title="class in repository">PrietenieDbRepository</a>, <a href="PrietenieFileRepository.html" title="class in repository">PrietenieFileRepository</a>, <a href="UtilizatorDbRepository.html" title="class in repository">UtilizatorDbRepository</a>, <a href="UtilizatorFileRepository.html" title="class in repository">UtilizatorFileRepository</a></code></dd>
+<dd><code><a href="AbstractFileRepository.html" title="class in main.java.repository">AbstractFileRepository</a>, <a href="InMemoryRepository.html" title="class in main.java.repository">InMemoryRepository</a>, <a href="PrietenieDbRepository.html" title="class in main.java.repository">PrietenieDbRepository</a>, <a href="PrietenieFileRepository.html" title="class in main.java.repository">PrietenieFileRepository</a>, <a href="UtilizatorDbRepository.html" title="class in main.java.repository">UtilizatorDbRepository</a>, <a href="UtilizatorFileRepository.html" title="class in main.java.repository">UtilizatorFileRepository</a></code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public interface </span><span class="element-name type-name-label">Repository&lt;ID, E extends <a href="../domain/Entity.html" title="class in domain">Entity</a>&lt;ID&gt;&gt;</span></div>
+<div class="type-signature"><span class="modifiers">public interface </span><span class="element-name type-name-label">Repository&lt;ID, E extends <a href="../domain/Entity.html" title="class in main.java.domain">Entity</a>&lt;ID&gt;&gt;</span></div>
 </div>
 </section>
 <section class="summary">
@@ -216,7 +216,7 @@ or null - if there is no entity with the given id</dd>
 <dd>null - if the given entity is saved
 otherwise returns the entity (id already exists)</dd>
 <dt>Throws:</dt>
-<dd><code><a href="../validators/ValidationException.html" title="class in validators">ValidationException</a></code> - if the entity is not valid</dd>
+<dd><code><a href="../validators/ValidationException.html" title="class in main.java.validators">ValidationException</a></code> - if the entity is not valid</dd>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/27/docs/api/java.base/java/lang/IllegalArgumentException.html" title="class in java.lang" class="external-link">IllegalArgumentException</a></code> - if the given entity is null.</dd>
 </dl>
 </div>
@@ -253,7 +253,7 @@ otherwise returns the entity (id already exists)</dd>
 otherwise returns the entity - (e.g. id does not exist).</dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/27/docs/api/java.base/java/lang/IllegalArgumentException.html" title="class in java.lang" class="external-link">IllegalArgumentException</a></code> - if the given entity is null.</dd>
-<dd><code><a href="../validators/ValidationException.html" title="class in validators">ValidationException</a></code> - if the entity is not valid.</dd>
+<dd><code><a href="../validators/ValidationException.html" title="class in main.java.validators">ValidationException</a></code> - if the entity is not valid.</dd>
 </dl>
 </div>
 </section>
