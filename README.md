@@ -1,7 +1,6 @@
-# MAP_ToySocialNetwork
+# Social Network (Java)
 
-A console-based toy social network written in Java, built for the *Advanced Programming Methods* course.
-
+A Java console application that models a small social network: users, friendships and communities. The code is split into layers (domain, repository, service, UI). Storage can be switched between in-memory and file-based through a repository factory. Communities are found as connected components of the friendship graph.
 ## Features
 
 - Add and remove users (ids are generated automatically)
