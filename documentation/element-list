@@ -1,6 +1,6 @@
 unnamed package
-main.java.domain
-main.java.main.java.repository
-main.java.Service
-main.java.UI
-main.java.validators
+domain
+repository
+Service
+UI
+validators

@@ -22,6 +22,19 @@ public class Utilizator extends Entity<Integer> implements Comparable<Utilizator
 
     }
     /**
+     * Creates a user without an id; the id is set by the repository on save.
+     *
+     * @param nume the last name
+     * @param prenume the first name
+     */
+    public Utilizator(String nume,String prenume)
+    {
+        super();
+        this.nume=nume;
+        this.prenume=prenume;
+    }
+
+    /**
      * Sets the last name.
      *
      * @param Nume the new last name

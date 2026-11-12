@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.Supplier;
+import java.util.stream.StreamSupport;
 
 
 /**
@@ -68,7 +69,15 @@ public class RepositoryFactory {
      */
     public Repository<Integer, Utilizator> createUtilizatorRepository(Validator<Utilizator> validator) {
         Map<RepositoryType, Supplier<Repository<Integer, Utilizator>>> creatori = new HashMap<>();
-        creatori.put(RepositoryType.MEMORY, () -> new InMemoryRepository<>(validator));
+        creatori.put(RepositoryType.MEMORY, () -> new InMemoryRepository<Integer, Utilizator>(validator) {
+            @Override
+            protected Integer genereazaId() {
+                return StreamSupport.stream(findAll().spliterator(), false)
+                        .map(Utilizator::getId)
+                        .max(Integer::compareTo)
+                        .orElse(0) + 1;
+            }
+        });
         creatori.put(RepositoryType.FILE, () -> new UtilizatorFileRepository(citeste("utilizatori.file"), validator));
         creatori.put(RepositoryType.DATABASE, () -> new UtilizatorDbRepository(validator,
                 citeste("db.url"), citeste("db.user"), citeste("db.password")));

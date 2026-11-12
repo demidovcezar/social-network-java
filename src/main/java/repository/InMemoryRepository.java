@@ -37,6 +37,14 @@ public class InMemoryRepository<ID, E extends Entity<ID>> implements Repository<
         return repo.values();
     }
 
+    /**
+     * Saves the entity; if it has no id, the id is generated with {@link #genereazaId()}.
+     *
+     * @param entity the entity to save
+     * @return null if the entity was saved, or the existing entity with the same id
+     * @throws IllegalArgumentException if entity is null or no id can be generated
+     * @throws validators.ValidationException if the entity is not valid
+     */
     @Override
     public E save(E entity) {
         if (entity == null) {
@@ -44,7 +52,10 @@ public class InMemoryRepository<ID, E extends Entity<ID>> implements Repository<
         }
         validator.validate(entity);
         if (entity.getId() == null) {
-            throw new IllegalArgumentException("ID-ul entitatii nu poate fi null!");
+           entity.setId(genereazaId());
+        }
+        if (entity.getId() == null) {
+            throw new IllegalArgumentException("Entitatea nu are id si repository-ul nu poate genera unul");
         }
         return repo.putIfAbsent(entity.getId(), entity);   // null daca s-a salvat, altfel entitatea existenta
     }
@@ -72,4 +83,14 @@ public class InMemoryRepository<ID, E extends Entity<ID>> implements Repository<
         }
         return entity;                                      // id inexistent
     }
+    /**
+     * Generates the id of a new entity (hook for subclasses, Template Method).
+     * By default the repository cannot generate ids, so it returns null.
+     *
+     * @return the new id, or null if this repository cannot generate one
+     */
+    protected ID genereazaId() {
+        return null;
+    }
+
 }

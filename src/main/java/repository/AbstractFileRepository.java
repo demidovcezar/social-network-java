@@ -115,6 +115,8 @@ public abstract class  AbstractFileRepository<ID,E extends Entity<ID>> extends I
     /**
      * Saves the entity and, if it was saved, rewrites the file.
      *
+     * @param entity the entity to save
+     * @return null if the entity was saved, or the existing entity with the same id
      * @throws RepositoryException if the file cannot be written
      */
     @Override
@@ -129,6 +131,8 @@ public abstract class  AbstractFileRepository<ID,E extends Entity<ID>> extends I
     /**
      * Deletes the entity and, if it existed, rewrites the file.
      *
+     * @param id the id of the entity
+     * @return the deleted entity, or null if there is no entity with this id
      * @throws RepositoryException if the file cannot be written
      */
     @Override
@@ -143,6 +147,8 @@ public abstract class  AbstractFileRepository<ID,E extends Entity<ID>> extends I
     /**
      * Updates the entity and, if it was updated, rewrites the file.
      *
+     * @param entity the entity with the new data
+     * @return null if the entity was updated, or the entity if its id does not exist
      * @throws RepositoryException if the file cannot be written
      */
     @Override

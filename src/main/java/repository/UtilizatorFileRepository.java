@@ -2,6 +2,8 @@ package repository;
 import domain.Utilizator;
 import validators.Validator;
 
+import java.util.stream.StreamSupport;
+
 
 /**
  * Text file repository for users; line format: id;firstName;lastName.
@@ -46,7 +48,18 @@ public class UtilizatorFileRepository  extends AbstractFileRepository<Integer,Ut
         String concatenare=entity.getId()+";"+entity.getPrenume()+";"+entity.getNume();
         return concatenare;
     }
-
+    /**
+     * Generates the id of a new user: the greatest existing id plus 1.
+     *
+     * @return the new id (1 if there are no users)
+     */
+    @Override
+    protected Integer genereazaId() {
+        return StreamSupport.stream(findAll().spliterator(), false)
+                .map(Utilizator::getId)
+                .max(Integer::compareTo)
+                .orElse(0) + 1;
+    }
 
 
 }

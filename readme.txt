@@ -1,188 +1,66 @@
-Toy Social Network - Laborator 4 (refactorizare cu interfete functionale si stream-uri)
+Toy Social Network - Laborator 5 (persistenta in baza de date PostgreSQL)
 
-0. Ce s-a schimbat fata de laboratorul 3
-Aplicatia face exact ce facea la laboratorul 3 (aceleasi meniuri, aceleasi
-fisiere in data/, acelasi format, aceleasi rezultate). Am refactorizat codul
-in stil Java 8: comportamentul se transmite ca parametru (lambda, referinte la
-metode), iar buclele clasice pe colectii au fost inlocuite cu stream-uri.
-Persistenta in baza de date nu este implementata (ramane pentru laboratorul 5).
+1. Ce s-a schimbat
+Functionalitatile sunt aceleasi ca la laboratorul 4, dar datele se pot pastra
+acum si intr-o baza de date PostgreSQL. Am implementat UtilizatorDbRepository
+si PrietenieDbRepository cu JDBC. Id-ul unui utilizator nou il genereaza
+stocarea, nu Service, iar la adaugare aplicatia afiseaza id-ul primit.
+Am trecut proiectul pe Gradle, ca driverul PostgreSQL sa se descarce automat.
 
-1. Cum functioneaza factory-ul si ce trebuie schimbat pentru baza de date
-Tipul de persistenta se alege din src/main/resources/config.properties, prin
-cheia repository.type (MEMORY, FILE sau DATABASE). Caile fisierelor
-(utilizatori.file, prietenii.file) si parametrii bazei de date (db.url,
-db.user, db.password) sunt tot acolo, nu in cod.
+2. Configurare
+- Baza de date socialnetwork, cu tabelele users si friendships (id generat cu
+  GENERATED ALWAYS AS IDENTITY, cheie primara (id1, id2), CHECK (id1 < id2),
+  chei straine catre users(id) cu ON DELETE CASCADE).
+- Copiez config.example.properties in config.properties si pun parola reala.
+  config.properties este in .gitignore, ca parola sa nu ajunga pe GitHub.
+- Driverul org.postgresql:postgresql:42.7.7 este in build.gradle.kts.
+- Tipul de stocare se alege doar din repository.type (DATABASE, FILE, MEMORY);
+  Main si factory-ul nu se modifica.
 
-RepositoryFactory este singurul loc care cunoaste clasele concrete de
-repository (Simple Factory). Nu mai foloseste switch: fiecare metoda de creare
-are un Map<RepositoryType, Supplier<Repository<...>>> in care fiecarui tip ii
-corespunde un Supplier care stie sa creeze repository-ul. Metoda ia Supplier-ul
-tipului configurat si apeleaza get(). Map-ul se construieste in interiorul
-metodei, pentru ca lambda-urile captureaza validatorul primit ca parametru.
-Supplier-ul amana crearea: se creeaza doar repository-ul ales (nu se deschid
-fisiere si nu se cer proprietatile bazei de date cand lucrez cu FILE).
-Daca un tip din enum nu are Supplier, se arunca RepositoryException cu mesaj
-clar. O valoare lipsa sau necunoscuta in config (de exemplu FILEE) da tot un
-mesaj clar.
+3. ON DELETE CASCADE si stergerea explicita
+Le folosesc pe amandoua. Service sterge intai prieteniile utilizatorului, apoi
+utilizatorul. Asta trebuie sa ramana, pentru ca FILE si MEMORY nu au CASCADE.
+In baza de date, ON DELETE CASCADE este plasa de siguranta: datele raman
+corecte si daca cineva sterge un utilizator direct din pgAdmin.
 
-Pentru trecerea la baza de date nu modific Service, UI sau Main. Trebuie doar:
-  - repository.type=DATABASE in config.properties (db.url, db.user, db.password
-    exista deja in fisier);
-  - implementarea metodelor din UtilizatorDbRepository si
-    PrietenieDbRepository (acum arunca UnsupportedOperationException cu mesajul
-    "Implemented in lab 4"); factory-ul le creeaza deja pentru DATABASE.
-La un tip nou de persistenta (de exemplu XML) adaug o constanta in
-RepositoryType si o intrare in map.
+4. Repository-urile JDBC
+- Implementeaza Repository<ID, E>, deci Service si UI nu stiu ca lucreaza cu o
+  baza de date (DIP).
+- Conexiunea se obtine cu DriverManager.getConnection(url, user, password), cu
+  parametrii primiti de la factory. Connection, PreparedStatement si ResultSet
+  se deschid in try-with-resources, deci se inchid automat.
+- executeQuery() pentru SELECT, executeUpdate() pentru INSERT, UPDATE, DELETE.
+- Respecta contractul Repository: null ca argument da IllegalArgumentException,
+  validarea se face inainte de save si update, update intoarce entitatea daca
+  id-ul nu exista (0 randuri modificate), delete intoarce entitatea stearsa.
+- La prietenii, id-ul este perechea (id1, id2), iar data se converteste cu
+  Timestamp.valueOf si toLocalDateTime.
 
-Simple Factory sau Abstract Factory (OCP)
-  Am ales Simple Factory. Avantaje: simplu, o singura clasa; Service, UI si Main
-  depind doar de interfata Repository si nu contin new pe repository-uri
-  concrete. Dezavantaj: la un tip nou de persistenta trebuie modificata fabrica
-  (o intrare noua in cele doua map-uri), deci OCP nu e respectat complet in
-  interiorul fabricii (respectat in restul aplicatiei).
-  Alternativa este Abstract Factory: o interfata RepositoryFactory cu cate o
-  implementare pentru fiecare tip (FileRepositoryFactory, DbRepositoryFactory).
-  Avantaje: un tip nou inseamna o clasa noua, fara modificarea codului existent
-  (respecta OCP), iar ambele repository-uri vin garantat din aceeasi familie.
-  Dezavantaje: mai multe clase; daca se adauga un repository nou in familie, se
-  modifica interfata si toate fabricile. Pentru doua repository-uri si trei
-  tipuri de persistenta, Simple Factory este suficient.
+5. Id-ul generat de stocare
+- DATABASE: INSERT fara id, cu RETURN_GENERATED_KEYS; citesc id-ul cu
+  getGeneratedKeys() si il pun in obiect cu setId.
+- FILE si MEMORY: InMemoryRepository are metoda genereazaId(), apelata in save
+  cand entitatea nu are id (Template Method). Repository-urile de utilizatori
+  o suprascriu cu cel mai mare id + 1.
+- Service creeaza utilizatorul fara id, il salveaza si intoarce getId().
+Am mutat generarea din Service pentru ca baza de date nu refoloseste id-urile
+sterse, deci maximul + 1 calculat in Service putea fi diferit de id-ul real.
 
-2. Fisier lipsa si linii corupte
-Comportamentul este identic cu cel de la laboratorul 3:
-- Fisier inexistent: aplicatia porneste cu repository-ul gol, iar fisierul (si
-  folderul data/) se creeaza la prima salvare. Cu Files.lines, un fisier lipsa
-  da NoSuchFileException (nu FileNotFoundException), pe care o prind separat,
-  inaintea lui IOException.
-- Linie goala: este sarita, dar numarata (numarul liniei corespunde cu cel din
-  fisier).
-- Linie corupta sau invalida: este ignorata si raportata cu numarul liniei si
-  motivul (camp lipsa, numar invalid, data invalida, entitate care nu trece de
-  validator, id duplicat), apoi incarcarea continua cu linia urmatoare.
-- Justificare: o singura linie stricata nu trebuie sa blocheze accesul la
-  restul datelor, iar utilizatorul vede exact ce linie trebuie corectata. La id
-  duplicat se pastreaza prima aparitie.
-- Erorile reale de citire/scriere (IOException, UncheckedIOException) se
-  transforma in RepositoryException, cu cauza originala atasata (exception
-  chaining).
-Fisierul de test cu linii corupte este data/utilizatori_corupt.txt.
+6. SQL injection
+Toate interogarile folosesc PreparedStatement cu ?. Valorile nu se
+concateneaza in SQL, deci un nume ca '); DROP TABLE users; -- se salveaza ca
+text obisnuit.
 
-3. Interfete functionale folosite si unde
-- Validator<T> (interfata proprie, @FunctionalInterface, cu metoda default
-  andThen): in Main am scris regula "numele are cel mult 10 caractere" ca
-  lambda si am compus-o cu UtilizatorValidator, fara clasa noua si fara sa
-  modific UtilizatorValidator. Validatorul compus este injectat in repository.
-  andThen aplica validatorul curent, apoi pe celalalt, deci regulile care
-  presupun date corecte se pun dupa validarea de baza.
-- Predicate<Utilizator>: Repository.findAll(Predicate<E>) este metoda default;
-  CriteriiUtilizator are metode statice care intorc Predicate (prenumeleIncepeCu,
-  areNumele), combinate cu and si Predicate.not. Service si meniul (optiunile
-  9-12) le folosesc, deci nu exista metode de tip findBy... in repository.
-- Supplier: map-ul din RepositoryFactory si lambda din orElseThrow.
-- Function: map, toMap, Comparator.comparing (de exemplu Utilizator::getId).
-- Consumer: forEach in Consola.
-- Comparator: Comparator.comparingInt in comunitateSociabila.
+7. Tratarea exceptiilor
+SQLException se impacheteaza in RepositoryException, cu cauza atasata. Metoda
+RepositoryException.din alege mesajul dupa e.getSQLState(): 08 = server oprit,
+28P01 = parola gresita, 3D000 = baza inexistenta, 23xxx = constrangere
+incalcata. Consola afiseaza doar mesajul, fara stack trace. Conexiunea se
+deschide la fiecare operatie, deci aplicatia porneste si cu serverul oprit.
 
-Referinte la metode (toate cele patru tipuri):
-- statica: CriteriiUtilizator::areNumeScurt (in Predicate.not);
-- metoda de instanta a unui obiect anume: System.out::println,
-  this::createEntityAsString, repoUtilizatori::findOne;
-- metoda de instanta a unui obiect oarecare: Utilizator::getId,
-  Prietenie::getIdUtilizator1;
-- constructor: ArrayList::new (Collectors.toCollection in Service.comunitati).
-
-4. Bucle inlocuite cu stream-uri
-- Service.genereazaId: inainte for + if pentru maxim; acum map, max, orElse.
-- Service.stergeUtilizator: inainte doua for (colectare si stergere); acum
-  filter, collect, forEach.
-- Service.construiesteAdiacenta: inainte for peste prietenii; acum toMap, filter,
-  map, collect.
-- Service.comunitateSociabila: inainte for-uri imbricate; acum max, map, collect.
-- AbstractFileRepository.loadData: inainte BufferedReader + while; acum
-  Files.lines, IntStream.range, forEach.
-- AbstractFileRepository.writeToFile: inainte for + BufferedWriter; acum map,
-  collect, Files.write.
-
-Pipeline-ul din Service.prieteniiLui (exemplu): sursa este
-StreamSupport.stream(repoPrietenii.findAll().spliterator(), false) (findAll()
-intoarce Iterable, care nu are stream()); filter si map sunt operatii
-intermediare (nu fac nimic singure), iar collect este operatia terminala care
-porneste executia. Rezultatele se construiesc cu collect, nu prin adaugare
-intr-o lista exterioara din forEach. Stream-ul se consuma o singura data.
-
-Bucla pastrata: while (activ) din Consola.run() (meniul interactiv). Nu
-parcurge o colectie, ci repeta citirea optiunilor pana la iesire, deci nu are
-echivalent in stream-uri. In dfs si drumMaxim (backtracking) am folosit
-stream-uri peste vecini, dar cu o multime comuna (vizitati / peDrum) care este
-verificata si modificata in ordine; algoritmul se bazeaza pe evaluarea
-secventiala a stream-ului (niciodata parallelStream).
-
-5. Template Method sau Function pentru conversia linie <-> entitate
-Am pastrat Template Method: AbstractFileRepository face citirea si scrierea in
-fisier, iar UtilizatorFileRepository si PrietenieFileRepository implementeaza
-doar extractEntity si createEntityAsString. Motive: conversia are un nume, un
-loc propriu si Javadoc, deci poate fi documentata si testata separat; codul de
-lucru cu fisierul nu se duplica. Alternativa (un singur FileRepository<ID, E>
-cu Function<String, E> si Function<E, String> primite in constructor) ar
-inlocui mostenirea cu compozitie si ar elimina warning-ul "this-escape" (se
-apeleaza loadData() din constructor, care foloseste metode abstracte), dar
-conversia ar deveni o lambda anonima in factory.
-
-6. Optional
-Repository.findOne ramane cu null (documentat in contract), iar Service il
-imprumuta intr-un Optional: gasesteUtilizator(id) foloseste
-Optional.ofNullable(repoUtilizatori.findOne(id)).orElseThrow(...) si inlocuieste
-verificarile "== null" din adaugaPrietenie si stergeUtilizator. max() din
-stream-uri intoarce tot Optional, pe care il desfac cu orElse. Nu apelez get()
-fara verificare.
-Motiv: trecerea lui findOne la Optional<E> ar modifica interfata si toate
-implementarile (memorie, fisier, bloc DB cu schelet), Javadoc-ul si contractul,
-fara castig real pentru acest proiect; astfel Optional este folosit unde
-rezultatul poate lipsi, fara a schimba contractul repository-ului.
-
-7. Principii de proiectare si sabloane
-- Factory (Simple Factory): RepositoryFactory, cu Map de Supplier.
-- Template Method: AbstractFileRepository (vezi punctul 5).
-- Strategy: Validator<T> este strategia, injectata in repository prin
-  constructor; UtilizatorValidator si regula din Main sunt strategii concrete
-  (lambda); InMemoryRepository este contextul.
-- Decorator: la laboratorul 3 se vedea in BufferedReader/BufferedWriter peste
-  FileReader/FileWriter. Dupa refactorizare, citirea si scrierea se fac cu
-  Files.lines si Files.write, care ascund bufferizarea, deci nu mai apare
-  explicit in cod. Validator.andThen inlantuie doua validatoare intr-unul
-  (validatorul rezultat le inconjoara pe ambele), o forma de compunere
-  asemanatoare.
-- DIP: Service, UI si Main depind de interfata Repository, nu de clase
-  concrete; Main nu contine new pe repository-uri concrete.
-- OCP: regulile de validare si criteriile de cautare noi se adauga fara sa
-  modific codul existent (lambda, andThen, Predicate); tipul nou de persistenta
-  cere doar o intrare in map.
-- SRP: validare, persistenta, logica de business si interactiunea cu utilizatorul
-  sunt in clase diferite.
-- LSP: repository-urile pe fisier respecta contractul interfetei Repository (save
-  si update intorc null la succes, delete intoarce entitatea stearsa, null ca
-  argument da IllegalArgumentException), deci pot inlocui varianta in memorie.
-- ISP: findAll(Predicate) este metoda default, deci interfata ramane mica si nu
-  creste cu o metoda pentru fiecare criteriu.
-
-8. Unde se face validarea
-Validarea se face in repository (InMemoryRepository.save/update, mostenit de
-varianta pe fisier), prin validatorul primit in constructor. Motiv: orice cale
-prin care intra date (introduse de utilizator sau citite din fisier) trece prin
-acelasi punct, deci nu pot ajunge date invalide in fisier. Service face doar
-verificarile de business (utilizator existent, prietenie duplicata). Dezavantaj:
-validarea este legata de repository; daca ar fi in Service, datele citite din
-fisier ar putea ocoli validarea.
-
-9. Demonstratie la predare
-1. Adaugari si stergeri de utilizatori si prietenii, inchid aplicatia si o
-   repornesc: datele raman in data/.
-2. Fisier lipsa (repository gol) si linie corupta introdusa manual
-   (data/utilizatori_corupt.txt): linia este raportata cu numarul ei, restul se
-   incarca.
-3. repository.type=MEMORY (date doar in memorie) si DATABASE
-   (UnsupportedOperationException cu mesaj clar).
-4. Trei locuri din cod inainte/dupa refactorizare (tabelul de la punctul 4),
-   cu explicatia pipeline-ului (operatii intermediare / terminale).
-5. O regula noua de validare doar cu lambda (in Main) si un criteriu nou de
-   cautare doar cu lambda, fara clase noi.
+8. Demonstratie
+1. CRUD cu DATABASE, verificat in pgAdmin, si id-ul generat.
+2. Repornesc aplicatia: datele raman.
+3. Schimb repository.type intre DATABASE, FILE si MEMORY.
+4. Opresc serverul (services.msc): apare mesajul de eroare, fara stack trace.
+5. Adaug un utilizator cu numele '); DROP TABLE users; -- : se salveaza ca text.

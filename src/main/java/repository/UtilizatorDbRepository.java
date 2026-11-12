@@ -61,7 +61,7 @@ public class UtilizatorDbRepository implements Repository<Integer, Utilizator> {
       }
       catch (SQLException e)
       {
-          throw new RepositoryException("Eroare la cautarea utilizatorului: "+e.getMessage(),e);
+          throw RepositoryException.din("Eroare la cautarea utilizatorului", e);
       }
     }
 
@@ -88,7 +88,7 @@ public class UtilizatorDbRepository implements Repository<Integer, Utilizator> {
         }
         catch(SQLException e)
         {
-            throw new RepositoryException("Nu s-au putut citi utilizatorii: "+e.getMessage(),e);
+            throw RepositoryException.din("Nu s-au putut citi utilizatorii", e);
         }
      return utilizatori;
     }
@@ -124,7 +124,7 @@ public class UtilizatorDbRepository implements Repository<Integer, Utilizator> {
     }
         catch(SQLException e)
         {
-            throw new RepositoryException("Eroare la salvarea utilizatorului: "+e.getMessage(),e);
+            throw RepositoryException.din("Eroare la salvarea utilizatorului", e);
         }
         return null;
     }
@@ -154,7 +154,7 @@ public class UtilizatorDbRepository implements Repository<Integer, Utilizator> {
         }
         catch (SQLException e)
         {
-            throw new RepositoryException("Eroare la stergerea utilizatorului: "+e.getMessage(),e);
+            throw RepositoryException.din("Eroare la stergerea utilizatorului", e);
         }
     }
 
@@ -190,7 +190,7 @@ public class UtilizatorDbRepository implements Repository<Integer, Utilizator> {
         }
         catch (SQLException e)
         {
-            throw new RepositoryException("Eroare la actualizarea utilizatorului: "+e.getMessage(),e);
+            throw RepositoryException.din("Eroare la actualizarea utilizatorului", e);
         }
 
     }
